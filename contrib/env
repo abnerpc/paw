@@ -1,0 +1,8 @@
+# this is an example of the environments variables required to run the application
+SECRET_KEY='keep_secret'
+DEBUG=True
+ALLOWED_HOSTS='.localhost'
+
+POSTGRES_HOST='localhost'
+POSTGRES_USER=paw_user
+POSTGRES_PASSWORD=123
