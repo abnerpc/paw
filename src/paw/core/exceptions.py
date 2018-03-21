@@ -1,0 +1,3 @@
+
+class InvalidDataException(Exception):
+    pass

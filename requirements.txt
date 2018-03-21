@@ -1,1 +1,4 @@
+# you can find the project dependencies in setup.py
 .
+
+gunicorn-19.7.1

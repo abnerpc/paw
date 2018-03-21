@@ -22,6 +22,9 @@ run: .env clean
 migrate: .env
 	$(MANAGE_CMD) migrate
 
+migrations: .env
+	$(MANAGE_CMD) makemigrations
+
 superuser: .env
 	$(MANAGE_CMD) createsuperuser
  
