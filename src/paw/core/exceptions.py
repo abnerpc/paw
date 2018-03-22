@@ -1,3 +1,5 @@
 
 class InvalidDataException(Exception):
-    pass
+
+    def __init__(self, errors):
+        self.errors = errors

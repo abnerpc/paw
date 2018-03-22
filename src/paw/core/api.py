@@ -1,5 +1,4 @@
 from restless.dj import DjangoResource
-from restless.preparers import FieldsPreparer
 from restless.exceptions import BadRequest
 
 from core.handlers import callevent_handler
@@ -26,19 +25,14 @@ class BaseResource(DjangoResource):
 
 
 class CallEventResource(BaseResource):
-    fields_map = {
-        'id': 'event_id',
-        'type': 'call_type',
-        'timestamp': 'call_timestamp',
-        'call_id': 'call_id',
-        'source': 'source_number',
-        'destination': 'destination_number'
-    }
-    preparer = FieldsPreparer(fields=fields_map)
 
     def create(self):
+
+        if not self.data:
+            raise BadRequest('Body data is missing')
+
         try:
             handler = callevent_handler()
             handler.handle(self.data)
         except InvalidDataException as ide:
-            raise BadRequest(ide.args[0])
+            raise BadRequest(ide.errors)
