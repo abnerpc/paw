@@ -19,10 +19,10 @@ install-dev:
 run: .env clean
 	$(MANAGE_CMD) runserver
 
-migrate: .env
+migrate: .env clean
 	$(MANAGE_CMD) migrate
 
-migrations: .env
+migrations: .env clean
 	$(MANAGE_CMD) makemigrations
 
 superuser: .env

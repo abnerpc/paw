@@ -1,9 +1,9 @@
 """Handler module for incoming data through the API"""
-from core.exceptions import InvalidDataException
+from .exceptions import InvalidDataException
 
-from core.forms import CallEventForm
-from core.const import DB_FIELDS, API_FIELDS
-from core.helpers import map_dict_fields
+from .forms import CallEventForm
+from .const import DB_FIELDS, API_FIELDS
+from .helpers import map_dict_fields
 
 
 class BaseEventHandler:

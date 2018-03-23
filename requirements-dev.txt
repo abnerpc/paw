@@ -1,8 +1,5 @@
+# you can find the project dependencies in setup.py
 -e .
 
 ipython==6.2.1
 ipdb==0.11
-pytest==3.4.2
-pytest-cov==2.5.1
-pytest-sugar==0.9.1
-pytest-django==3.1.2

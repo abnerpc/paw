@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 
-from core.api import CallEventResource
+from pawapp.api import CallEventResource
 
 urlpatterns = [
     path('admin/', admin.site.urls),

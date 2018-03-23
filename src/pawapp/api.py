@@ -1,8 +1,8 @@
 from restless.dj import DjangoResource
 from restless.exceptions import BadRequest
 
-from core.handlers import callevent_handler
-from core.exceptions import InvalidDataException
+from .handlers import callevent_handler
+from .exceptions import InvalidDataException
 
 
 class BaseResource(DjangoResource):

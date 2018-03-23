@@ -1,7 +1,7 @@
 from django import forms
 
-from core.models import CallEvent, CALL_TYPE_START
-from core.const import DB_FIELDS
+from .models import CallEvent, CALL_TYPE_START
+from .const import DB_FIELDS
 
 
 class CallEventForm(forms.ModelForm):

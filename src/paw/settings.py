@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'core',
+    'pawapp.apps.PawappConfig',
 ]
 
 MIDDLEWARE = [
@@ -60,7 +60,7 @@ WSGI_APPLICATION = 'paw.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'paw_db',
+        'NAME': 'paw',
         'HOST': config('POSTGRES_HOST'),
         'PORT': config('POSTGRES_PORT', default='5432'),
         'USER': config('POSTGRES_USER'),
