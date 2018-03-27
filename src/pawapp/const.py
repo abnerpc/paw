@@ -1,6 +1,5 @@
 
 DB_FIELDS = [
-    'event_id',
     'call_type',
     'call_timestamp',
     'call_id',
@@ -9,10 +8,20 @@ DB_FIELDS = [
 ]
 
 API_FIELDS = [
-    'id',
     'type',
     'timestamp',
     'call_id',
     'source',
     'destination',
 ]
+
+CALL_TYPE_START = 'start'
+CALL_TYPE_END = 'end'
+CALL_TYPE_CHOICES = [
+    (CALL_TYPE_START, 'Start'),
+    (CALL_TYPE_END, 'End'),
+]
+
+CALL_ID_MAX_LENGTH = 32
+PHONE_NUMBER_MIN_LENGTH = 10
+PHONE_NUMBER_MAX_LENGTH = 11

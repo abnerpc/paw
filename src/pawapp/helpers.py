@@ -12,3 +12,12 @@ def map_dict_fields(source, from_fields, to_fields):
         if not value:
             continue
         source[to_field] = value
+
+
+def add_list_value(source, key, item):
+    """Add item to a list inside the source dict"""
+    current_list = source.get(key)
+    if not current_list:
+        current_list = []
+        source[key] = current_list
+    current_list.append(item)

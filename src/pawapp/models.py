@@ -1,23 +1,20 @@
 from django.db import models
 
-
-CALL_TYPE_START = 'start'
-CALL_TYPE_END = 'end'
-CALL_TYPE_CHOICES = [
-    (CALL_TYPE_START, 'Start'),
-    (CALL_TYPE_END, 'End'),
-]
+from .const import (
+    CALL_TYPE_CHOICES, CALL_ID_MAX_LENGTH, PHONE_NUMBER_MAX_LENGTH
+)
 
 
 class CallEvent(models.Model):
     """Model for the call events ocurred"""
 
-    event_id = models.CharField(max_length=16)
     call_type = models.CharField(max_length=5, choices=CALL_TYPE_CHOICES)
     call_timestamp = models.DateTimeField()
-    call_id = models.CharField(max_length=16)
-    source_number = models.CharField(max_length=9, blank=True, null=True)
-    destination_number = models.CharField(max_length=9, blank=True, null=True)
+    call_id = models.CharField(max_length=CALL_ID_MAX_LENGTH)
+    source_number = models.CharField(
+        max_length=PHONE_NUMBER_MAX_LENGTH, blank=True, null=True)
+    destination_number = models.CharField(
+        max_length=PHONE_NUMBER_MAX_LENGTH, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -26,7 +26,7 @@ EXTERNAL_DEPENDENCIES = [
     'django==2.0.3',
     'python-decouple==3.1',
     'psycopg2-binary==2.7.4',
-    'restless==2.1.1'
+    'restless==2.1.1',
 ]
 
 setup(
