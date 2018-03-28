@@ -10,7 +10,12 @@ from pawapp.helpers import map_dict_fields
         {'id': 1, 'field_1': 1, 'field_2': '2', 'field_3': [1, 2, 3]},
         ['id', 'field_1', 'field_3'],
         ['new_id', 'new_field_1', 'new_field_3'],
-        {'new_id': 1, 'new_field_1': 1, 'field_2': '2', 'new_field_3': [1, 2, 3]},
+        {
+            'new_id': 1,
+            'new_field_1': 1,
+            'field_2': '2',
+            'new_field_3': [1, 2, 3]
+        },
     )
 ])
 def test_map_dict_fields(data, from_fields, to_fields, expected):

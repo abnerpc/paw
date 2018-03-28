@@ -13,6 +13,9 @@ install:
 install-dev:
 	pip install -r requirements-dev.txt
 
+install-test:
+	pip install -r requirements-test.txt
+
 .env:
 	cp contrib/env .env
 

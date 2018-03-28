@@ -17,9 +17,6 @@ class BaseEventHandler:
     def handle(self, data):
         raise NotImplementedError
 
-    def save(self):
-        raise NotImplementedError
-
 
 class CallEventHandler(BaseEventHandler):
     """Handle Call Event data"""
@@ -39,7 +36,7 @@ class CallEventHandler(BaseEventHandler):
         map_dict_fields(self.data, API_FIELDS, DB_FIELDS)
 
         # save data
-        print('saved')
+        self.save()
 
     def validate(self):
         """Validate fields from data"""
@@ -94,6 +91,9 @@ class CallEventHandler(BaseEventHandler):
                         errors, field, 'Invalid {} characters.'.format(field))
 
         return errors
+
+    def save(self):
+        print('saved')
 
 
 def callevent_handler():
