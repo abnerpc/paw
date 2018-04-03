@@ -24,6 +24,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # third part apps
+    'django_rq',
+
+    # local apps
     'pawapp.apps.PawappConfig',
 ]
 
@@ -102,3 +106,24 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# cache settings
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': config('REDIS_URL'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+
+# rq settings
+RQ_QUEUES = {
+    'default': {
+        'URL': config('REDIS_RQ_URL'),
+        'DEFAULT_TIMEOUT': 360,
+    }
+}

@@ -27,6 +27,11 @@ EXTERNAL_DEPENDENCIES = [
     'python-decouple==3.1',
     'psycopg2-binary==2.7.4',
     'restless==2.1.1',
+    'redis==2.10.6',
+    'rq==0.10.0',
+    'django-rq==1.0.1',
+    'django-redis==4.9.0',
+    'ujson==1.35',
 ]
 
 setup(

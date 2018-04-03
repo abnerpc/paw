@@ -1,14 +1,10 @@
 """Handler module for incoming data through the API"""
 import datetime
 
+from . import const
 from .exceptions import InvalidDataException
-
-# from .forms import CallEventForm
-from .const import (
-    DB_FIELDS, API_FIELDS, CALL_TYPE_CHOICES, CALL_ID_MAX_LENGTH,
-    CALL_TYPE_START, PHONE_NUMBER_MIN_LENGTH, PHONE_NUMBER_MAX_LENGTH
-)
 from .helpers import map_dict_fields, add_list_value
+from .jobs import save_callevent
 
 
 class BaseEventHandler:
@@ -33,7 +29,7 @@ class CallEventHandler(BaseEventHandler):
             raise InvalidDataException(errors)
 
         # parse the data
-        map_dict_fields(self.data, API_FIELDS, DB_FIELDS)
+        map_dict_fields(self.data, const.API_FIELDS, const.DB_FIELDS)
 
         # save data
         self.save()
@@ -47,7 +43,7 @@ class CallEventHandler(BaseEventHandler):
         if not type_field:
             add_list_value(errors, 'type', 'Field type is required.')
         else:
-            callevent_choices_keys = dict(CALL_TYPE_CHOICES).keys()
+            callevent_choices_keys = dict(const.CALL_TYPE_CHOICES).keys()
             if type_field not in callevent_choices_keys:
                 add_list_value(errors, 'type', 'Invalid type value.')
 
@@ -68,20 +64,20 @@ class CallEventHandler(BaseEventHandler):
         if not call_id_field:
             add_list_value(errors, 'call_id', 'Field call_id is required.')
         else:
-            if len(call_id_field) > CALL_ID_MAX_LENGTH:
+            if len(call_id_field) > const.CALL_ID_MAX_LENGTH:
                 add_list_value(errors, 'call_id', 'Invalid call_id length.')
 
         # validate source and destination fields
         for field in ['source', 'destination']:
             field_value = self.data.get(field)
             if not field_value:
-                if type_field == CALL_TYPE_START:
+                if type_field == const.CALL_TYPE_START:
                     add_list_value(
                         errors, field, 'Field {} is required.'.format(field))
             else:
                 value_valid_length = (
-                    len(field_value) >= PHONE_NUMBER_MIN_LENGTH and
-                    len(field_value) <= PHONE_NUMBER_MAX_LENGTH
+                    len(field_value) >= const.PHONE_NUMBER_MIN_LENGTH and
+                    len(field_value) <= const.PHONE_NUMBER_MAX_LENGTH
                 )
                 if not value_valid_length:
                     add_list_value(
@@ -93,7 +89,9 @@ class CallEventHandler(BaseEventHandler):
         return errors
 
     def save(self):
-        print('saved')
+
+        # send data to be saved by another job
+        save_callevent.delay(self.data)
 
 
 def callevent_handler():
