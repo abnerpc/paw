@@ -22,6 +22,9 @@ install-test:
 run: .env clean
 	$(MANAGE_CMD) runserver
 
+worker: .env clean
+	$(MANAGE_CMD) rqworker default
+
 migrate: .env clean
 	$(MANAGE_CMD) migrate
 
