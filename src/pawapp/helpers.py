@@ -1,4 +1,5 @@
 """Helper functions module"""
+import datetime
 
 
 def map_dict_fields(source, from_fields, to_fields):
