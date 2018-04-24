@@ -5,9 +5,13 @@ class InvalidDataException(Exception):
         self.errors = errors
 
 
-class WrongNumberToCalcException(Exception):
+class InvalidCallPairException(Exception):
     pass
 
 
-class RatesNotFoundToCalcException(Exception):
+class RatesNotFoundException(Exception):
+    pass
+
+
+class InvalidCallIntervalException(Exception):
     pass

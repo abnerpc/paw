@@ -1,16 +1,15 @@
 from datetime import datetime, timedelta
-import pickle
 from decimal import Decimal
 
 from django.db import models
-from django.core.cache import cache
 
 from . import const
 from . import exceptions
+from . import cache
 
 
 class CallEvent(models.Model):
-    """Model for the call events ocurred"""
+    """Model representing the call events ocurred"""
 
     call_type = models.CharField(max_length=5, choices=const.CALL_TYPE_CHOICES)
     call_timestamp = models.DateTimeField()
@@ -45,7 +44,7 @@ class CallEvent(models.Model):
         )
 
         if calc_bill:
-            call_value, call_duration = cls.calculate_call_value(call_id)
+            call_value, call_duration = cls.calculate_call(call_id)
             # save bill values
 
         return event
@@ -65,78 +64,60 @@ class CallEvent(models.Model):
         call_events = cls.objects.filter(call_id=call_id).values_list(
             'call_type', 'call_timestamp')
         if len(call_events) != 2:
-            raise exceptions.WrongNumberToCalcException()
+            raise exceptions.InvalidCallPairException()
         call_events = dict(call_events)
+
+        # start and end being calculated
         start_call = call_events.get('start')
         end_call = call_events.get('end')
+        if end_call <= start_call:
+            raise exceptions.InvalidCallIntervalException()
 
-        # get the current rates
-        rates = ConnectionRate.current_rates()
-        if not rates:
-            raise exceptions.RatesNotFoundToCalcException()
+        # build values maps based on start and end calls datetime
+        map_interval_values = ConnectionRate.mapped_rates_interval(start_call, end_call)
+        if not map_interval_values:
+            raise exceptions.RatesNotFoundException()
 
         # hold the calculated values and durations
         calculated_values, calculated_durations = [], []
-        # difference between the start and end call
-        diff_between_calls = end_call - start_call
-        # difference of days plus one day to loop in
-        total_days = diff_between_calls.days + 1
-        # flag to hold if the first interval was already found
-        first_interval_found = False
 
-        # loop over the days calculating values for the intervals
-        for calc_days in range(total_days):
+        def calculate_values(from_datetime, to_datetime, minute_rate):
+            """Calculate and hold values"""
+            # duration in minutes for the interval
+            time_diff = (to_datetime - from_datetime)
+            duration = int(time_diff.total_seconds() / 60)
 
-            # current day being calculated
-            current_day = start_call.date() + timedelta(days=calc_days)
+            # calculate the interval duration with the current minute rate
+            calculated_value = duration * minute_rate
+            calculated_values.append(round(Decimal(calculated_value), 2))
+            calculated_durations.append(duration)
 
-            # loop over the rates for the current day
-            for from_time, to_time, standing_rate, minute_rate in rates:
+        first_found = last_found = False
+        for from_datetime, to_datetime, standing_rate, minute_rate in map_interval_values:
 
-                # from/to datetime to be the current interval calculated
-                from_datetime = datetime.combine(current_day, from_time)
-                to_datetime = datetime.combine(current_day, to_time)
+            if not first_found:
 
-                # if the difference in days is negative, set the to_datetime for the next day
-                # used for intervals when start time is bigger than the end time
-                diff = (to_datetime - from_datetime)
-                if diff.days < 0:
-                    to_datetime = datetime.combine(current_day + timedelta(days=1), to_time)
+                if not from_datetime < start_call < to_datetime:
+                    continue
 
-                # if this current_day being calculated is the same as the start time
-                # and it's the first interval
-                if current_day == start_call.date() and not first_interval_found:
+                first_found = True
 
-                    # if start call datetime is not in the interval
-                    if from_datetime > start_call > to_datetime:
-                        continue
+                # append the standing rate
+                calculated_values.append(standing_rate)
 
-                    # append the standing rate
-                    calculated_values.append(standing_rate)
+                from_datetime = start_call
 
-                    # set the first interval was already calculated
-                    first_interval_found = True
+            if from_datetime.date() == end_call.date():
 
-                    # set the from to the start call
-                    from_datetime = start_call
+                if from_datetime < end_call < to_datetime:
+                    to_datetime = end_call
+                    last_found = True
 
-                # if the current day being calculated is the same as the end time
-                if current_day == end_call.date():
-                    # if the end call is less than the current to datetime
-                    # set the to as the end call
-                    if end_call < to_datetime:
-                        to_datetime = end_call
+            calculate_values(from_datetime, to_datetime, minute_rate)
+            if last_found:
+                break
 
-                # duration in minutes for the interval
-                time_diff = (to_datetime - from_datetime)
-                duration = int(time_diff.total_seconds() / 60)
-
-                # calculate the interval duration with the current minute rate
-                calculated_value = duration * minute_rate
-                calculated_values.append(round(Decimal(calculated_value), 2))
-                calculated_durations.append(duration)
-
-        # returns all the sum of the calculated values and duration
+        # returns all the sum of the calculated values and durations
         return sum(calculated_values), sum(calculated_durations)
 
     class Meta:
@@ -144,7 +125,7 @@ class CallEvent(models.Model):
 
 
 class ConnectionRate(models.Model):
-    """Model for the connection rate uppon the calls"""
+    """Model representing the connection rate calls"""
 
     from_time = models.TimeField()
     to_time = models.TimeField()
@@ -155,23 +136,99 @@ class ConnectionRate(models.Model):
 
     @classmethod
     def current_rates(cls, use_cache=True):
+        """
+        Current rates available for calculation
 
+        Args:
+            use_cache (bool): Should use the cache
+
+        Returns:
+            list: List with dict object with the fields:
+            from_time, to_time, stangind and minute rates
+        """
+        data = None
         if use_cache:
-            rates_data = cache.get(const.CACHE_KEY_RATES)
-            if rates_data:
-                return pickle.loads(rates_data)
+            data = cache.get_value(const.CACHE_KEY_RATES)
 
-        values_fields = [
-            'from_time', 'to_time', 'standing_rate', 'minute_rate']
-        rates = cls.objects.values_list(*values_fields)
-        if rates and use_cache:
-            cache.set(const.CACHE_KEY_RATES, pickle.dumps(tuple(rates)))
+        if not data:
+            values_fields = [
+                'from_time', 'to_time', 'standing_rate', 'minute_rate']
+            rates = cls.objects.values_list(*values_fields)
+            if rates:
+                data = tuple(rates)
+                if use_cache:
+                    cache.set_value(const.CACHE_KEY_RATES, data)
 
-        return rates
+        return data
+
+    @classmethod
+    def mapped_rates_interval(cls, start_datetime, end_datetime):
+        """
+        List of mapped datetime and values intervals
+
+        This method is responsible to calculate the range of intervals between
+        the start and end datetime with respective values.
+
+        Args:
+            start_datetime (datetime): Start datetime object
+            end_datetime (datetime): End datetime object
+
+        Returns:
+            list: List of intervals
+        """
+        # get the current rates
+        rates = cls.current_rates()
+        if not rates:
+            return []
+
+        # build values maps based on start and end calls datetime
+        map_interval_values = []
+
+        def add_map_interval_values(first_date, second_date, first_value, second_value):
+            """Verify if the values exists and add to the map"""
+            values = (first_date, second_date, first_value, second_value)
+            if values not in map_interval_values:
+                map_interval_values.append(values)
+
+        # calculate range of days
+        duration_days = end_datetime.date() - start_datetime.date()
+        duration_days = duration_days.days + 1
+
+        # loop over the range adding values to the map
+        for days in range(duration_days):
+
+            current_day = start_datetime.date() + timedelta(days=days)
+            for from_time, to_time, standing_rate, minute_rate in rates:
+                if to_time <= from_time:
+                    yesterday = current_day + timedelta(days=-1)
+                    tomorrow = current_day + timedelta(days=1)
+                    add_map_interval_values(
+                        datetime.combine(yesterday, from_time),
+                        datetime.combine(current_day, to_time),
+                        standing_rate,
+                        minute_rate
+                    )
+                    add_map_interval_values(
+                        datetime.combine(current_day, from_time),
+                        datetime.combine(tomorrow, to_time),
+                        standing_rate,
+                        minute_rate
+                    )
+                else:
+                    add_map_interval_values(
+                        datetime.combine(current_day, from_time),
+                        datetime.combine(current_day, to_time),
+                        standing_rate,
+                        minute_rate
+                    )
+        # sort the maps by the datetime values
+        map_interval_values.sort(key=lambda v: (v[0], v[1]))
+
+        return map_interval_values
 
 
 class Bill(models.Model):
-
+    """Model representing the phone bill"""
     phone_number = models.CharField(max_length=const.PHONE_NUMBER_MAX_LENGTH)
     year = models.PositiveSmallIntegerField()
     month = models.PositiveSmallIntegerField()
@@ -182,7 +239,7 @@ class Bill(models.Model):
 
 
 class BillItem(models.Model):
-
+    """Model representing the item of a Bill"""
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=const.PHONE_NUMBER_MAX_LENGTH)
     from_time = models.DateTimeField()
