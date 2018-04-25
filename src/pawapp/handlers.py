@@ -17,9 +17,6 @@ class BaseEventHandler:
 class CallEventHandler(BaseEventHandler):
     """Handle Call Event data"""
 
-    # default format for timestamp field
-    timestamp_format = '%Y-%m-%dT%H:%M:%SZ'
-
     def handle(self, data):
         """Validate and save the data"""
         self.data = data or {}
@@ -54,7 +51,7 @@ class CallEventHandler(BaseEventHandler):
         else:
             try:
                 datetime.datetime.strptime(
-                    timestamp_field, self.timestamp_format)
+                    timestamp_field, const.TIMESTAMP_FORMAT)
             except ValueError:
                 add_list_value(
                     errors, 'timestamp', 'Invalid timestamp format.')

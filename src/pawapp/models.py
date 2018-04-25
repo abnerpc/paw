@@ -12,7 +12,7 @@ class CallEvent(models.Model):
     """Model representing the call events ocurred"""
 
     call_type = models.CharField(max_length=5, choices=const.CALL_TYPE_CHOICES)
-    call_timestamp = models.DateTimeField()
+    call_timestamp = models.CharField(max_length=20)
     call_id = models.CharField(
         db_index=True, max_length=const.CALL_ID_MAX_LENGTH)
     source_number = models.CharField(
@@ -21,6 +21,11 @@ class CallEvent(models.Model):
         max_length=const.PHONE_NUMBER_MAX_LENGTH, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def call_timestamp_datetime(self):
+        call_ts = self.call_timestamp
+        return datetime.strptime(call_ts, const.TIMESTAMP_FORMAT)
 
     @classmethod
     def save_event(cls, calc_bill=False, **data):
@@ -50,26 +55,49 @@ class CallEvent(models.Model):
         return event
 
     @classmethod
+    def interval_by_call_id(cls, call_id):
+        """
+        Return call timestamp interval as datetime
+
+        Args:
+            call_id (int): Call event Id
+
+        Returns:
+            dict: Dictionary with start and end datetime
+        """
+        interval_values = {}
+        call_events = cls.objects.filter(call_id=call_id).values_list(
+            'call_type', 'call_timestamp')
+        if call_events:
+            interval_values = dict(call_events)
+            for field in ['start', 'end']:
+                call_ts = interval_values.get(field)
+                if call_ts:
+                    interval_values[field] = datetime.strptime(
+                        call_ts, const.TIMESTAMP_FORMAT)
+        return interval_values
+
+    @classmethod
     def calculate_call(cls, call_id):
         """
         Calculated the call value and duration charged
 
         Args:
-            call_id: Call event Id being calculated
+            call_id (int): Call event Id being calculated
 
         Returns:
             decimal, decimal: Two values representing the total value and duration calculated
         """
         # get start and end events for this call
-        call_events = cls.objects.filter(call_id=call_id).values_list(
-            'call_type', 'call_timestamp')
-        if len(call_events) != 2:
-            raise exceptions.InvalidCallPairException()
-        call_events = dict(call_events)
+        call_events = cls.interval_by_call_id(call_id)
 
         # start and end being calculated
         start_call = call_events.get('start')
         end_call = call_events.get('end')
+
+        # check if the values are valid
+        if not start_call or not end_call:
+            raise exceptions.InvalidCallPairException()
         if end_call <= start_call:
             raise exceptions.InvalidCallIntervalException()
 
