@@ -16,9 +16,9 @@ def test_callevent_handle_calls(map_dict_fields):
     handler.save = Mock()
 
     handler.handle(None)
-    handler.validate.assert_called_once()
+    handler.validate.assert_called_once_with()
     map_dict_fields.assert_called_once_with({}, API_FIELDS, DB_FIELDS)
-    handler.save.assert_called_once()
+    handler.save.assert_called_once_with()
 
 
 def test_callevent_handle_raise_validation_exception():

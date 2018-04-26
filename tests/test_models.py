@@ -109,10 +109,11 @@ from pawapp.exceptions import (
     ),
 ])
 @patch('pawapp.models.CallEvent.interval_by_call_id')
-def test_calculate_call_values(interval_by_call_id, call_data, rates_data, expected_value, expected_duration):
+@patch('pawapp.models.ConnectionRate.current_rates')
+def test_calculate_call_values(current_rates, interval_by_call_id, call_data, rates_data, expected_value, expected_duration):
     """Test method calculate_call from CallEvent model"""
     interval_by_call_id.return_value = call_data
-    mapped_rates_interval.return_value = rates_data
+    current_rates.return_value = rates_data
 
     total_value, total_duration = CallEvent.calculate_call('1')
 
@@ -123,9 +124,10 @@ def test_calculate_call_values(interval_by_call_id, call_data, rates_data, expec
 @pytest.mark.parametrize('data', [
     {}, {'start': 1}, {'end': 2}, {'start': 1, 'another': 3}, {'end': 2, 'aaa': 'error'}
 ])
-def test_calculate_call_invalid_pair_of_calls(data):
+@patch('pawapp.models.CallEvent.interval_by_call_id')
+def test_calculate_call_invalid_pair_of_calls(interval_by_call_id, data):
     """Test method calculate_call with invalid call pairs"""
-    CallEvent.interval_by_call_id = Mock(return_value=data)
+    interval_by_call_id.return_value = data
 
     with pytest.raises(InvalidCallPairException):
         CallEvent.calculate_call('1')
@@ -137,20 +139,22 @@ def test_calculate_call_invalid_pair_of_calls(data):
     (datetime.datetime(2018, 4, 5, 6, 34, 23), datetime.datetime(2018, 4, 5, 6, 34, 23)),
     (datetime.datetime(2018, 2, 3, 10, 50, 56), datetime.datetime(2018, 2, 3, 10, 50, 55)),
 ])
-def test_calculate_call_invalid_call_interval(start_datetime, end_datetime):
+@patch('pawapp.models.CallEvent.interval_by_call_id')
+def test_calculate_call_invalid_call_interval(interval_by_call_id, start_datetime, end_datetime):
     """Test method calculate_call with invalid pair interval"""
     data = {'start': start_datetime, 'end': end_datetime}
-    CallEvent.interval_by_call_id = Mock(return_value=data)
+    interval_by_call_id.return_value = data
 
     with pytest.raises(InvalidCallIntervalException):
         CallEvent.calculate_call('1')
 
-
-def test_calculate_call_with_rates_not_found():
+@patch('pawapp.models.CallEvent.interval_by_call_id')
+@patch('pawapp.models.ConnectionRate.current_rates')
+def test_calculate_call_with_rates_not_found(current_rates, interval_by_call_id):
     """Test method calculate_call with no rates found"""
     data = {'start': 1, 'end': 2}
-    CallEvent.interval_by_call_id = Mock(return_value=data)
-    ConnectionRate.current_rates = Mock(return_value=[])
+    interval_by_call_id.return_value = data
+    current_rates.return_value = []
 
     with pytest.raises(RatesNotFoundException):
         CallEvent.calculate_call('1')
@@ -178,11 +182,11 @@ def test_calculate_call_with_rates_not_found():
     ),
 
 ])
-def test_interval_by_call_id(db_values, expected_start, expected_end):
+@patch('pawapp.models.CallEvent.objects.filter')
+def test_interval_by_call_id(callevent_filter, db_values, expected_start, expected_end):
     values_list_mock = Mock(**{'values_list.return_value': db_values})
-    CallEvent.objects.filter = Mock(return_value=values_list_mock)
+    callevent_filter.return_value = values_list_mock
 
-    CallEvent.interval_by_call_id.end()
     call_interval = CallEvent.interval_by_call_id('1')
     assert call_interval.get('start') == expected_start
     assert call_interval.get('end') == expected_end
