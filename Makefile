@@ -39,3 +39,6 @@ test: clean
 
 test-cov: clean
 	pytest --cov-report term-missing --cov=paw
+
+test-tox: .env clean
+	tox -v
