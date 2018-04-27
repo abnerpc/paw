@@ -28,12 +28,12 @@ class CallEvent(models.Model):
         return datetime.strptime(call_ts, const.TIMESTAMP_FORMAT)
 
     @classmethod
-    def save_event(cls, calc_bill=False, **data):
+    def save_call(cls, save_bill=False, **data):
         """
         Save or update Call Event
 
         Args:
-            calc_bill (bool, optional): Should calculated the bill for this call event
+            save_bill (bool, optional): Should save the bill for this call event
             **data: Dict with Call Event data
 
         Returns:
@@ -48,9 +48,24 @@ class CallEvent(models.Model):
             defaults=data
         )
 
-        if calc_bill:
+        if save_bill:
+
+            # calculate the values for the current call
             call_value, call_duration = cls.calculate_call(call_id)
+
+            # get the calls related
+            start_call = cls.objects.get(call_id=call_id, call_type=const.CALL_TYPE_START)
+            end_call = cls.objects.get(call_id=call_id, call_type=const.CALL_TYPE_END)
+
             # save bill values
+            Bill.save_by_calls(
+                start_call.source_number,
+                start_call.destination_number,
+                start_call.call_timestamp_datetime,
+                end_call.call_timestamp_datetime,
+                call_duration,
+                call_value
+            )
 
         return event
 
@@ -262,6 +277,26 @@ class Bill(models.Model):
     month = models.PositiveSmallIntegerField()
     total_amount = models.DecimalField(max_digits=8, decimal_places=2)
 
+    @classmethod
+    def save_by_calls(cls, from_number, to_number, start, end, duration, amount):
+        bill, _ = cls.objects.get_or_create(
+            phone_number=from_number,
+            year=end.year,
+            month=end.month,
+            defaults={'total_amount': 0}
+        )
+        BillItem.objects.create(
+            bill=bill,
+            phone_number=to_number,
+            from_datetime=start,
+            to_datetime=end,
+            duration=duration,
+            amount=amount
+        )
+
+        bill.total_amount += amount
+        bill.save()
+
     class Meta:
         unique_together = ('phone_number', 'year', 'month')
 
@@ -270,7 +305,7 @@ class BillItem(models.Model):
     """Model representing the item of a Bill"""
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=const.PHONE_NUMBER_MAX_LENGTH)
-    from_time = models.DateTimeField()
-    to_time = models.DateTimeField()
+    from_datetime = models.DateTimeField()
+    to_datetime = models.DateTimeField()
     duration = models.PositiveIntegerField()
     amount = models.DecimalField(max_digits=8, decimal_places=2)
