@@ -61,7 +61,7 @@ class CallEventHandler(BaseEventHandler):
         if not call_id_field:
             add_list_value(errors, 'call_id', 'Field call_id is required.')
         else:
-            if len(call_id_field) > const.CALL_ID_MAX_LENGTH:
+            if len(str(call_id_field)) > const.CALL_ID_MAX_LENGTH:
                 add_list_value(errors, 'call_id', 'Invalid call_id length.')
 
         # validate source and destination fields

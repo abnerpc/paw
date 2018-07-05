@@ -1,5 +1,7 @@
-APP_PATH=src/paw
-MANAGE_CMD=python $(APP_PATH)/manage.py
+APP_PATH=src/pawapp
+PROJECT_PATH=src/paw
+MANAGE_CMD=python $(PROJECT_PATH)/manage.py
+INITIAL_FIXTURE_FILE=$(APP_PATH)/fixtures/initial_data.json
 
 clean:
 	@find . -name "*.pyc" | xargs rm -rf
@@ -28,16 +30,22 @@ worker: .env clean
 migrate: .env clean
 	$(MANAGE_CMD) migrate
 
+dump-initial-data:
+	$(MANAGE_CMD) dumpdata --exclude auth.permission --exclude contenttypes > $(INITIAL_FIXTURE_FILE)
+
+load-initial-data:
+	$(MANAGE_CMD) loaddata $(INITIAL_FIXTURE_FILE)
+
 migrations: .env clean
 	$(MANAGE_CMD) makemigrations
 
 superuser: .env
 	$(MANAGE_CMD) createsuperuser
  
-test: clean
+test: .env clean
 	pytest
 
-test-cov: clean
+test-cov: .env clean
 	pytest --cov-report term-missing --cov=paw
 
 test-tox: .env clean

@@ -9,7 +9,7 @@ from .models import CallEvent
 def save_callevent(data):
     try:
         save_bill = data.get('call_type') == const.CALL_TYPE_END
-        CallEvent.save_call(calc_bill, **data)
+        CallEvent.save_call(save_bill, **data)
     except IntegrityError as ie:
         # todo: log, email, callback ?
         pass
