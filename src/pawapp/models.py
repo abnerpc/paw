@@ -126,10 +126,10 @@ class CallEvent(models.Model):
             """Calculate and hold values"""
             # duration in minutes for the interval
             time_diff = (to_datetime - from_datetime)
-            duration = int(time_diff.total_seconds() / 60)
+            duration = time_diff.total_seconds()
 
             # calculate the interval duration with the current minute rate
-            calculated_value = duration * minute_rate
+            calculated_value = int(duration / 60) * minute_rate
             calculated_values.append(round(Decimal(calculated_value), 2))
             calculated_durations.append(duration)
 

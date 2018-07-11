@@ -32,7 +32,14 @@ class CallEventResource(BaseResource):
             raise BadRequest('Body data is missing')
 
         try:
-            handler = callevent_handler()
-            handler.handle(self.data)
+            handler = callevent_handler(self.data)
+            handler.handle()
         except InvalidDataException as ide:
             raise BadRequest(ide.errors)
+
+
+class BillResource(BaseResource):
+
+    def detail(self, phone_number, month=None, year=None):
+        __import__('ipdb').set_trace()
+        return {"test": "111"}

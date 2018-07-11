@@ -29,3 +29,8 @@ PHONE_NUMBER_MAX_LENGTH = 11
 TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 CACHE_KEY_RATES = 'connection_rates'
+
+MESSAGE_FIELD_REQUIRED = 'Field is required.'
+MESSAGE_FIELD_INVALID_VALUE = 'Field has invalid value.'
+MESSAGE_FIELD_INVALID_FORMAT = 'Field has invalid format.'
+MESSAGE_FIELD_INVALID_LENGTH = 'Field has invalid length.'
