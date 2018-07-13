@@ -3,8 +3,9 @@ import datetime
 
 from . import const
 from .exceptions import InvalidDataException
-from .helpers import map_dict_fields, add_list_value
+from .helpers import map_dict_fields, add_list_value, last_period
 from .jobs import save_callevent
+from .models import Bill
 
 
 class BaseDataHandler:
@@ -111,12 +112,35 @@ class BillHandler(BaseDataHandler):
         if self.errors:
             raise InvalidDataException(self.errors)
 
+        phone_number = self.data.get('phone_number')
+        month = self.data.get('month')
+        year = self.data.get('year')
+
+        last_month, last_year = last_period()
+        if not month and not year:
+            month = last_month
+            year = last_year
+        else:
+            if not month or not year:
+                self.add_error('period', const.MESSAGE_PERIOD_WRONG)
+            if month > last_month or year > last_year:
+                self.add_error('period', const.MESSAGE_PERIOD_INVALID)
+            if self.errors:
+                raise InvalidDataException(self.errors)
+
+        bill_data = Bill.data_by_number_period(phone_number, month, year)
+        return bill_data
+
     def validate(self):
         """Validate data requested"""
 
         phone_number = self.data.get('phone_number')
         if not phone_number:
             self.add_error('phone_number', const.MESSAGE_FIELD_REQUIRED)
+        elif not phone_number.is_digit():
+            self.add_error('phone_number', const.MESSAGE_FIELD_INVALID_VALUE)
+        elif len(str(phone_number)) > 11:
+            self.add_error('phone_number', const.MESSAGE_FIELD_INVALID_LENGTH)
 
 
 def callevent_handler(data):

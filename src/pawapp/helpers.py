@@ -22,3 +22,10 @@ def add_list_value(source, key, item):
         current_list = []
         source[key] = current_list
     current_list.append(item)
+
+
+def last_period():
+    """Get the current month and year"""
+    month_first_day = datetime.datetime.today().replace(day=1)
+    last_month_day = month_first_day - datetime.timedelta(days=1)
+    return last_month_day.month, last_month_day.year

@@ -41,4 +41,16 @@ class CallEventResource(BaseResource):
 class BillResource(BaseResource):
 
     def detail(self, phone_number, month=None, year=None):
-        return {"test": "111"}
+
+        data = {
+            'phone_number': phone_number,
+            'month': month,
+            'year': year
+        }
+
+        try:
+            handler = bill_handler(data)
+            handler.handle()
+        except InvalidDataException as ide:
+            raise BadRequest(ide.errors)
+

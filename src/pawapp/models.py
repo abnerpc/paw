@@ -314,6 +314,18 @@ class Bill(models.Model):
         bill.total_amount += amount
         bill.save()
 
+    @classmethod
+    def data_by_number_period(cls, phone_number, month, year):
+        """
+        Return bill data by phone_number, month and year
+
+        Args:
+            phone_number (str): Phone number
+            month (str): Month
+            year (str): Year
+        """
+        pass
+
     class Meta:
         unique_together = ('phone_number', 'year', 'month')
 
