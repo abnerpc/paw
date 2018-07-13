@@ -21,7 +21,7 @@ from pawapp.exceptions import (
             (datetime.time(10, 00), datetime.time(20, 00), Decimal('0.4'), Decimal('0.02'))
         ],
         Decimal('7.1'),
-        335
+        20100
     ),
     (
         {
@@ -33,7 +33,7 @@ from pawapp.exceptions import (
             (datetime.time(22, 00), datetime.time(6, 00), Decimal('0.36'), Decimal('0.0')),
         ],
         Decimal('0.54'),
-        12
+        823
     ),
     (
         {
@@ -45,7 +45,7 @@ from pawapp.exceptions import (
             (datetime.time(22, 00), datetime.time(6, 00), Decimal('0.36'), Decimal('0.01')),
         ],
         Decimal('92.71'),
-        1452
+        87223
     ),
     (
         {
@@ -58,7 +58,7 @@ from pawapp.exceptions import (
             (datetime.time(1, 00), datetime.time(9, 30), Decimal('3.22'), Decimal('1.2')),
         ],
         Decimal('2220.51'),
-        2212
+        132823
     ),
     (
         {
@@ -70,7 +70,7 @@ from pawapp.exceptions import (
             (datetime.time(22, 00), datetime.time(6, 00), Decimal('2.67'), Decimal('0.08')),
         ],
         Decimal('268.08'),
-        335
+        20140
     ),
     (
         {
@@ -82,7 +82,7 @@ from pawapp.exceptions import (
             (datetime.time(14, 00), datetime.time(13, 00), Decimal('4.23'), Decimal('1.32')),
         ],
         Decimal('2531.91'),
-        1774
+        106540
     ),
     (
         {
@@ -94,7 +94,7 @@ from pawapp.exceptions import (
             (datetime.time(1, 00), datetime.time(0, 00), Decimal('6.76'), Decimal('4.53')),
         ],
         Decimal('930.37'),
-        177
+        10720
     ),
     (
         {
@@ -105,7 +105,7 @@ from pawapp.exceptions import (
             (datetime.time(0, 00), datetime.time(0, 00), Decimal('3.42'), Decimal('0.2')),
         ],
         Decimal('47.02'),
-        218
+        13120
     ),
 ])
 @patch('pawapp.models.CallEvent.interval_by_call_id')

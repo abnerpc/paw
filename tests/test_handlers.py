@@ -11,22 +11,22 @@ from pawapp.handlers import CallEventHandler
 
 @patch('pawapp.handlers.map_dict_fields')
 def test_callevent_handle_calls(map_dict_fields):
-    handler = CallEventHandler()
-    handler.validate = Mock(return_value=None)
+    handler = CallEventHandler(None)
+    handler.validate = Mock()
     handler.save = Mock()
 
-    handler.handle(None)
+    handler.handle()
     handler.validate.assert_called_once_with()
     map_dict_fields.assert_called_once_with({}, API_FIELDS, DB_FIELDS)
     handler.save.assert_called_once_with()
 
 
 def test_callevent_handle_raise_validation_exception():
-    handler = CallEventHandler()
-    handler.validate = Mock(return_value={'error': 'testing'})
+    handler = CallEventHandler({})
+    handler.errors = {'error': 'testing'}
 
     with pytest.raises(InvalidDataException) as exception_info:
-        handler.handle(None)
+        handler.handle()
 
     ide = exception_info.value
     assert ide.errors['error'] == 'testing'
@@ -59,10 +59,9 @@ def test_callevent_handle_raise_validation_exception():
     ),
 ])
 def test_callevent_validate_required(data, expected_errors):
-    handler = CallEventHandler()
-    handler.data = data
+    handler = CallEventHandler(data)
 
-    errors = handler.validate()
-    assert len(expected_errors) == len(errors.keys())
+    handler.validate()
+    assert len(expected_errors) == len(handler.errors.keys())
     for key in expected_errors:
-        assert key in errors
+        assert key in handler.errors

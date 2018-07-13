@@ -41,5 +41,4 @@ class CallEventResource(BaseResource):
 class BillResource(BaseResource):
 
     def detail(self, phone_number, month=None, year=None):
-        __import__('ipdb').set_trace()
         return {"test": "111"}
