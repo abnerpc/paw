@@ -134,10 +134,10 @@ class BillHandler(BaseDataHandler):
     def validate(self):
         """Validate data requested"""
 
-        phone_number = self.data.get('phone_number')
+        phone_number = str(self.data.get('phone_number', ''))
         if not phone_number:
             self.add_error('phone_number', const.MESSAGE_FIELD_REQUIRED)
-        elif not phone_number.is_digit():
+        elif not phone_number.isdigit():
             self.add_error('phone_number', const.MESSAGE_FIELD_INVALID_VALUE)
         elif len(str(phone_number)) > 11:
             self.add_error('phone_number', const.MESSAGE_FIELD_INVALID_LENGTH)
@@ -147,6 +147,6 @@ def callevent_handler(data):
     return CallEventHandler(data)
 
 
-def bill_handler():
-    return BillHandler()
+def bill_handler(data):
+    return BillHandler(data)
 

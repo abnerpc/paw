@@ -317,14 +317,41 @@ class Bill(models.Model):
     @classmethod
     def data_by_number_period(cls, phone_number, month, year):
         """
-        Return bill data by phone_number, month and year
-
+        Return bill data by phone_number, month and yea
         Args:
             phone_number (str): Phone number
             month (str): Month
             year (str): Year
         """
-        pass
+        query = {
+            'phone_number': phone_number,
+            'month': month,
+            'year': year
+        }
+
+        try:
+            bill = cls.objects.get(**query)
+        except Employee.DoesNotExist:
+            return {}
+
+        data = {
+            'subscriber': phone_number,
+            'period': '{}/{}'.format(month, year),
+        }
+        calls = []
+        for billitem in bill.billitem_set.all():
+            str_date, str_time = billitem.from_date_and_time
+            call = {
+                'destination': billitem.phone_number,
+                'start_date': str_date,
+                'start_time': str_time,
+                'duration': billitem.repr_duration,
+                'price': '{0:.2f}'.format(billitem.amount)
+            }
+            calls.append(call)
+
+        data['calls'] = calls
+        return data
 
     class Meta:
         unique_together = ('phone_number', 'year', 'month')
@@ -338,3 +365,14 @@ class BillItem(models.Model):
     to_timestamp = models.CharField(max_length=20)
     duration = models.PositiveIntegerField()
     amount = models.DecimalField(max_digits=8, decimal_places=2)
+
+    @property
+    def repr_duration(self):
+        return str(timedelta(seconds=self.duration))
+
+    @property
+    def from_date_and_time(self):
+        values = self.from_timestamp.split('T')
+        if len(values) != 2:
+            return ['', '']
+        return values
