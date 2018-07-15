@@ -124,24 +124,21 @@ class CallEvent(models.Model):
 
         def calculate_values(from_datetime, to_datetime, minute_rate):
             """Calculate and hold values"""
-            # duration in minutes for the interval
+            # calculate duration for the interval
             time_diff = (to_datetime - from_datetime)
             duration = int(time_diff.total_seconds())
+            calculated_durations.append(duration)
 
             # calculate the interval duration with the current minute rate
             calculated_value = int(duration / 60) * minute_rate
             calculated_values.append(round(Decimal(calculated_value), 2))
-            calculated_durations.append(duration)
 
-        first_found = last_found = False
         for from_datetime, to_datetime, standing_rate, minute_rate in map_interval_values:
 
-            if not first_found:
+            if not calculated_values:
 
                 if not from_datetime < start_call < to_datetime:
                     continue
-
-                first_found = True
 
                 # append the standing rate
                 calculated_values.append(standing_rate)
@@ -151,12 +148,10 @@ class CallEvent(models.Model):
             if from_datetime.date() == end_call.date():
 
                 if from_datetime < end_call < to_datetime:
-                    to_datetime = end_call
-                    last_found = True
+                    calculate_values(from_datetime, end_call, minute_rate)
+                    break
 
             calculate_values(from_datetime, to_datetime, minute_rate)
-            if last_found:
-                break
 
         # returns all the sum of the calculated values and durations
         return sum(calculated_values), sum(calculated_durations)
@@ -225,48 +220,42 @@ class ConnectionRate(models.Model):
         if not rates:
             return []
 
-        # build values maps based on start and end calls datetime
-        map_interval_values = []
+        # build values interval based on start and end calls datetime
+        map_interval_values = set()
 
-        def add_map_interval_values(first_date, second_date, first_value, second_value):
-            """Verify if the values exists and add to the map"""
-            values = (first_date, second_date, first_value, second_value)
-            if values not in map_interval_values:
-                map_interval_values.append(values)
+        current_day = start_datetime.date()
+        while current_day <= end_datetime.date():
 
-        # calculate range of days
-        duration_days = end_datetime.date() - start_datetime.date()
-        duration_days = duration_days.days + 1
-
-        # loop over the range adding values to the map
-        for days in range(duration_days):
-
-            current_day = start_datetime.date() + timedelta(days=days)
             for from_time, to_time, standing_rate, minute_rate in rates:
-                if to_time <= from_time:
-                    yesterday = current_day + timedelta(days=-1)
-                    tomorrow = current_day + timedelta(days=1)
-                    add_map_interval_values(
-                        datetime.combine(yesterday, from_time),
-                        datetime.combine(current_day, to_time),
-                        standing_rate,
-                        minute_rate
+
+                from_datetime = datetime.combine(current_day, from_time)
+                to_datetime = datetime.combine(current_day, to_time)
+
+                # if time is not inverse, add and continue
+                if to_time > from_time:
+                    map_interval_values.add(
+                        (from_datetime, to_datetime, standing_rate, minute_rate)
                     )
-                    add_map_interval_values(
-                        datetime.combine(current_day, from_time),
-                        datetime.combine(tomorrow, to_time),
-                        standing_rate,
-                        minute_rate
-                    )
-                else:
-                    add_map_interval_values(
-                        datetime.combine(current_day, from_time),
-                        datetime.combine(current_day, to_time),
-                        standing_rate,
-                        minute_rate
-                    )
-        # sort the maps by the datetime values
-        map_interval_values.sort(key=lambda v: (v[0], v[1]))
+                    continue
+
+                # if time is inverse, add datetime for the day before and after current day
+                yesterday = current_day + timedelta(days=-1)
+                yesterday_datetime = datetime.combine(yesterday, from_time)
+                tomorrow = current_day + timedelta(days=1)
+                tomorrow_datetime = datetime.combine(tomorrow, to_time)
+                map_interval_values.add(
+                    (yesterday_datetime, to_datetime, standing_rate, minute_rate)
+                )
+                map_interval_values.add(
+                    (from_datetime, tomorrow_datetime, standing_rate, minute_rate)
+                )
+
+            current_day += timedelta(days=1)
+
+        # sort set by the datetime values
+        map_interval_values = sorted(
+            map_interval_values, key=lambda v: (v[0], v[1])
+        )
 
         return map_interval_values
 
