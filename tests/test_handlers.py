@@ -3,26 +3,24 @@ from unittest.mock import Mock, patch
 import pytest
 
 from pawapp.exceptions import InvalidDataException
-from pawapp.const import (
-    API_FIELDS, DB_FIELDS, CALL_TYPE_START, CALL_TYPE_END
-)
-from pawapp.handlers import CallEventHandler
+from pawapp import const
+from pawapp.handlers import callevent_handler, bill_handler
 
 
 @patch('pawapp.handlers.map_dict_fields')
-def test_callevent_handle_calls(map_dict_fields):
-    handler = CallEventHandler(None)
+def test_calleventhandler_handle_calls(map_dict_fields):
+    handler = callevent_handler(None)
     handler.validate = Mock()
     handler.save = Mock()
 
     handler.handle()
     handler.validate.assert_called_once_with()
-    map_dict_fields.assert_called_once_with({}, API_FIELDS, DB_FIELDS)
+    map_dict_fields.assert_called_once_with({}, const.API_FIELDS, const.DB_FIELDS)
     handler.save.assert_called_once_with()
 
 
-def test_callevent_handle_raise_validation_exception():
-    handler = CallEventHandler({})
+def test_calleventhandler_handle_raise_validation_exception():
+    handler = callevent_handler({})
     handler.errors = {'error': 'testing'}
 
     with pytest.raises(InvalidDataException) as exception_info:
@@ -36,10 +34,10 @@ def test_callevent_handle_raise_validation_exception():
     ({}, ['type', 'timestamp', 'call_id']),
     ({'type': 'a'}, ['type', 'timestamp', 'call_id']),
     (
-        {'type': CALL_TYPE_START},
+        {'type': const.CALL_TYPE_START},
         ['timestamp', 'call_id', 'source', 'destination']
     ),
-    ({'type': CALL_TYPE_END}, ['timestamp', 'call_id']),
+    ({'type': const.CALL_TYPE_END}, ['timestamp', 'call_id']),
     ({'timestamp': '222'}, ['type', 'timestamp', 'call_id']),
     ({'timestamp': '2018-03-12'}, ['type', 'timestamp', 'call_id']),
     ({'timestamp': '2018-03-12 10:34:11'}, ['type', 'timestamp', 'call_id']),
@@ -58,10 +56,79 @@ def test_callevent_handle_raise_validation_exception():
         ['type', 'timestamp', 'call_id', 'destination']
     ),
 ])
-def test_callevent_validate_required(data, expected_errors):
-    handler = CallEventHandler(data)
+def test_calleventhandler_validate_required(data, expected_errors):
+    handler = callevent_handler(data)
 
     handler.validate()
     assert len(expected_errors) == len(handler.errors.keys())
     for key in expected_errors:
         assert key in handler.errors
+
+
+@patch('pawapp.handlers.Bill')
+@patch('pawapp.handlers.last_period')
+def test_billhandler_handle_raise_exception(last_period, model_bill):
+    """Test Bill handle raising exception"""
+    model_bill.data_by_number_period = Mock()
+    handler = bill_handler({})
+    handler.validate = Mock()
+    handler.errors = {'has': 'error'}
+
+    with pytest.raises(InvalidDataException):
+        handler.handle()
+    handler.validate.assert_called_once_with()
+    last_period.assert_not_called()
+    model_bill.data_by_number_period.assert_not_called()
+
+
+@patch('pawapp.handlers.Bill')
+@patch('pawapp.handlers.last_period')
+def test_billhandler_handle_calls(last_period, model_bill):
+    """Test Bill handle method calls"""
+    model_bill.data_by_number_period = Mock(return_value={'data': 'here'})
+    handler = bill_handler({'phone_number': 1, 'month': 2, 'year': 3})
+    handler.validate = Mock()
+
+    res = handler.handle()
+    assert res['data'] == 'here'
+    handler.validate.assert_called_once_with()
+    last_period.assert_not_called()
+    model_bill.data_by_number_period.assert_called_once_with(1, 2, 3)
+
+
+@patch('pawapp.handlers.Bill')
+@patch('pawapp.handlers.last_period')
+def test_billhandler_handle_without_period(last_period, model_bill):
+    """Test Bill handle method calls"""
+    model_bill.data_by_number_period = Mock(return_value={'good': 'data'})
+    handler = bill_handler({'phone_number': 111})
+    handler.validate = Mock()
+    last_period.return_value = (2022, 10)
+
+    res = handler.handle()
+    assert res['good'] == 'data'
+    handler.validate.assert_called_once_with()
+    last_period.assert_called_once_with()
+    model_bill.data_by_number_period.assert_called_once_with(111, 10, 2022)
+
+
+@pytest.mark.parametrize('phone_number,month,year,errors', [
+    (None, 11, 2018, {'phone_number': [const.MESSAGE_FIELD_REQUIRED]}),
+    ('aa1', 10, 2018, {'phone_number': [const.MESSAGE_FIELD_INVALID_VALUE]}),
+    (123456789191, 6, 2018, {'phone_number': [const.MESSAGE_FIELD_INVALID_LENGTH]}),
+    (1, 1, 2018, {}),
+    (1, 13, 2018, {'period': [const.MESSAGE_FIELD_INVALID_VALUE]}),
+    (1, 1, 18, {'period': [const.MESSAGE_FIELD_INVALID_LENGTH]}),
+    (1, 111, 2018, {'period': [const.MESSAGE_FIELD_INVALID_LENGTH]}),
+    (1, 'a', 2018, {'period': [const.MESSAGE_FIELD_INVALID_VALUE]}),
+])
+@patch('pawapp.handlers.last_period')
+def test_billhandler_validate_data(last_period, phone_number, month, year, errors):
+    """Test Bill validate data"""
+    last_period.return_value = (2021, 9)
+    handler = bill_handler({'phone_number': phone_number, 'month': month, 'year': year})
+    handler.validate()
+
+    assert len(errors) == len(handler.errors)
+    for error, values in handler.errors.items():
+        assert values == errors[error]

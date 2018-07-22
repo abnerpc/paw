@@ -1,6 +1,6 @@
 import pytest
 
-from pawapp.helpers import map_dict_fields
+from pawapp import helpers
 
 
 @pytest.mark.parametrize('data,from_fields,to_fields,expected', [
@@ -19,7 +19,19 @@ from pawapp.helpers import map_dict_fields
     )
 ])
 def test_map_dict_fields(data, from_fields, to_fields, expected):
-    map_dict_fields(data, from_fields, to_fields)
+    helpers.map_dict_fields(data, from_fields, to_fields)
     for key, value in expected.items():
         assert key in data
         assert data[key] == value
+
+
+def test_add_list_value():
+
+    source = {}
+    helpers.add_list_value(source, 'test', 'new item')
+    helpers.add_list_value(source, 'test', 'second value')
+    helpers.add_list_value(source, 'new', 'another')
+
+    assert len(source) == 2
+    assert source['test'] == ['new item', 'second value']
+    assert source['new'] == ['another']

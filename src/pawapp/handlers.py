@@ -116,32 +116,40 @@ class BillHandler(BaseDataHandler):
         month = self.data.get('month')
         year = self.data.get('year')
 
-        last_month, last_year = last_period()
         if not month and not year:
-            month = last_month
-            year = last_year
-        else:
-            if not month or not year:
-                self.add_error('period', const.MESSAGE_PERIOD_WRONG)
-            if month > last_month or year > last_year:
-                self.add_error('period', const.MESSAGE_PERIOD_INVALID)
-            if self.errors:
-                raise InvalidDataException(self.errors)
+            year, month = last_period()
 
         bill_data = Bill.data_by_number_period(phone_number, month, year)
         return bill_data
 
     def validate(self):
         """Validate data requested"""
-
-        phone_number = str(self.data.get('phone_number', ''))
+        phone_number = self.data.get('phone_number', '')
         if not phone_number:
             self.add_error('phone_number', const.MESSAGE_FIELD_REQUIRED)
-        elif not phone_number.isdigit():
+        elif not str(phone_number).isdigit():
             self.add_error('phone_number', const.MESSAGE_FIELD_INVALID_VALUE)
         elif len(str(phone_number)) > 11:
             self.add_error('phone_number', const.MESSAGE_FIELD_INVALID_LENGTH)
 
+        # validate period
+        month = self.data.get('month')
+        year = self.data.get('year')
+        if (not month and year) or (month and not year):
+            self.add_error('period', const.MESSAGE_PERIOD_WRONG)
+        else:
+            try:
+                month = int(month)
+                year = int(year)
+                if len(str(month)) > 2 or len(str(year)) != 4:
+                    self.add_error('period', const.MESSAGE_FIELD_INVALID_LENGTH)
+                else:
+                    period_date = datetime.date(year, month, 1)
+                    last_period_date = datetime.date(*last_period(), day=1)
+                    if period_date > last_period_date:
+                        self.add_error('period', const.MESSAGE_PERIOD_INVALID)
+            except ValueError:
+                self.add_error('period', const.MESSAGE_FIELD_INVALID_VALUE)
 
 def callevent_handler(data):
     return CallEventHandler(data)
