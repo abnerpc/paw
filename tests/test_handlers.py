@@ -121,6 +121,11 @@ def test_billhandler_handle_without_period(last_period, model_bill):
     (1, 1, 18, {'period': [const.MESSAGE_FIELD_INVALID_LENGTH]}),
     (1, 111, 2018, {'period': [const.MESSAGE_FIELD_INVALID_LENGTH]}),
     (1, 'a', 2018, {'period': [const.MESSAGE_FIELD_INVALID_VALUE]}),
+    (1, None, 2018, {'period': [const.MESSAGE_PERIOD_WRONG]}),
+    (1, 0, 2018, {'period': [const.MESSAGE_PERIOD_WRONG]}),
+    (1, 11, None, {'period': [const.MESSAGE_PERIOD_WRONG]}),
+    (1, 11, 0, {'period': [const.MESSAGE_PERIOD_WRONG]}),
+    (1, 11, 2018, {})
 ])
 @patch('pawapp.handlers.last_period')
 def test_billhandler_validate_data(last_period, phone_number, month, year, errors):

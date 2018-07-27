@@ -137,7 +137,7 @@ class BillHandler(BaseDataHandler):
         year = self.data.get('year')
         if (not month and year) or (month and not year):
             self.add_error('period', const.MESSAGE_PERIOD_WRONG)
-        else:
+        elif month and year:
             try:
                 month = int(month)
                 year = int(year)
