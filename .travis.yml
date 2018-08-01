@@ -14,4 +14,5 @@ install:
   - tox --version
 
 script:
+  - make install-test
   - make test-tox

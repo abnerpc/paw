@@ -16,7 +16,7 @@ install-dev:
 	pip install -e . && pip install -r requirements/dev.txt
 
 install-test:
-	pip install . && pip install -r requirements/test.txt
+	pip install -e . && pip install -r requirements/test.txt
 
 .env:
 	cp contrib/env .env
