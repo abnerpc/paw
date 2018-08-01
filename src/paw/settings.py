@@ -107,7 +107,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(Path.home(), 'paw_static')
+STATIC_ROOT = os.path.join(str(Path.home()), 'paw_static')
 
 # cache settings
 CACHES = {

@@ -36,7 +36,7 @@ EXTERNAL_DEPENDENCIES = [
 
 setup(
     name='paw',
-    version='0.0.0',
+    version='0.0.1',
     license='BSD 2-Clause License',
     description='A well-defined API to calculate phone calls costs',
     long_description='%s\n%s' % (

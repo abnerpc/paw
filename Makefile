@@ -10,13 +10,13 @@ clean:
 	@rm -rf build
 
 install:
-	python setup.py install
+	pip install . && pip install -r requirements/prod.txt
 
 install-dev:
-	pip install -r requirements-dev.txt
+	pip install -e . && pip install -r requirements/dev.txt
 
 install-test:
-	pip install -r requirements-test.txt
+	pip install . && pip install -r requirements/test.txt
 
 .env:
 	cp contrib/env .env
