@@ -13,7 +13,7 @@ server {
     error_log /webapps/paw/logs/nginx-error.log;
 
     location /static/ {
-        alias   /webapps/paw/paw/public/;
+        alias   /webapps/paw/paw_static/;
     }
 
     location / {

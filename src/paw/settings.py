@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from decouple import config, Csv
 
@@ -106,7 +107,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, '..', 'public')
+STATIC_ROOT = os.path.join(Path.home(), 'paw_static')
 
 # cache settings
 CACHES = {
