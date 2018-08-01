@@ -1,0 +1,34 @@
+upstream paw_app_server {
+  server unix:/webapps/paw/run/gunicorn.sock fail_timeout=0;
+}
+
+server {
+
+    listen 80;
+    server_name "";
+    charset utf-8;
+    client_max_body_size 4G;
+
+    access_log /webapps/paw/logs/nginx-access.log;
+    error_log /webapps/paw/logs/nginx-error.log;
+
+    location /static/ {
+        alias   /webapps/paw/paw/public/;
+    }
+    location /media/ {
+        alias   /webapps/paw/paw/media/;
+    }
+
+    location / {
+        proxy_redirect     off;
+        proxy_read_timeout 600;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Host $server_name;
+        if (!-f $request_filename) {
+            proxy_pass http://paw_app_server;
+            break;
+        }
+    }
+}

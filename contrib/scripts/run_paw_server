@@ -1,0 +1,26 @@
+#!/bin/bash
+
+NAME="paw_server"
+APPDIR=/webapps/paw
+SOCKFILE=$APPDIR/run/gunicorn.sock
+USER=paw
+GROUP=webapps
+NUM_WORKERS=3
+DJANGO_SETTINGS_MODULE=paw.settings
+DJANGO_WSGI_MODULE=paw.wsgi
+
+echo "Starting $NAME as `whoami`"
+
+# activate the virtual environment
+cd $APPDIR
+source venv/bin/activate
+export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
+
+# start the application
+exec gunicorn ${DJANGO_WSGI_MODULE}:application \
+  --name $NAME \
+  --workers $NUM_WORKERS \
+  --user=$USER --group=$GROUP \
+  --bind=unix:$SOCKFILE \
+  --log-level=debug \
+  --log-file=-
