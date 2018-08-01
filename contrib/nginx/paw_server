@@ -15,9 +15,6 @@ server {
     location /static/ {
         alias   /webapps/paw/paw/public/;
     }
-    location /media/ {
-        alias   /webapps/paw/paw/media/;
-    }
 
     location / {
         proxy_redirect     off;

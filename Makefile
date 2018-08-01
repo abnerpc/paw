@@ -41,6 +41,9 @@ migrations: .env clean
 
 superuser: .env
 	$(MANAGE_CMD) createsuperuser
+
+collectstatic: .env
+	$(MANAGE_CMD) collectstatic
  
 test: .env clean
 	pytest
