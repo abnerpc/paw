@@ -2,6 +2,7 @@ import json
 
 from restless.dj import DjangoResource
 from restless.exceptions import BadRequest
+from restless.preparers import FieldsPreparer
 
 from .handlers import callevent_handler, bill_handler
 from .exceptions import InvalidDataException
@@ -30,9 +31,6 @@ class CallEventResource(BaseResource):
 
     def create(self):
 
-        if not self.data:
-            raise BadRequest('Body data is missing')
-
         try:
             handler = callevent_handler(self.data)
             handler.handle()
@@ -53,7 +51,7 @@ class BillResource(BaseResource):
         try:
             handler = bill_handler(data)
             bill_data = handler.handle()
-            return json.dumps(bill_data)
+            return bill_data
         except InvalidDataException as ide:
             raise BadRequest(ide.errors)
 

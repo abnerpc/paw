@@ -30,9 +30,10 @@ TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 CACHE_KEY_RATES = 'connection_rates'
 
-MESSAGE_FIELD_REQUIRED = 'Field is required.'
-MESSAGE_FIELD_INVALID_VALUE = 'Field has invalid value.'
-MESSAGE_FIELD_INVALID_FORMAT = 'Field has invalid format.'
-MESSAGE_FIELD_INVALID_LENGTH = 'Field has invalid length.'
+MESSAGE_FIELD_REQUIRED = 'This field is required.'
+MESSAGE_FIELD_INVALID_VALUE = 'This field has an invalid value.'
+MESSAGE_FIELD_INVALID_FORMAT = 'This field has an invalid format.'
+MESSAGE_FIELD_INVALID_LENGTH = 'This field has an invalid length.'
 MESSAGE_PERIOD_INVALID = 'Invalid period values'
 MESSAGE_PERIOD_WRONG = 'Wrong period values'
+

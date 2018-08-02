@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.db import models
+from django.shortcuts import get_object_or_404
 
 from . import const
 from . import exceptions
@@ -318,10 +319,7 @@ class Bill(models.Model):
             'year': year
         }
 
-        try:
-            bill = cls.objects.get(**query)
-        except Employee.DoesNotExist:
-            return {}
+        bill = get_object_or_404(cls, **query)
 
         data = {
             'subscriber': phone_number,

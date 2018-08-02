@@ -6,6 +6,7 @@ from .exceptions import InvalidDataException
 from .helpers import map_dict_fields, add_list_value, last_period
 from .jobs import save_callevent
 from .models import Bill
+from .forms import CallEventForm
 
 
 class BaseDataHandler:
@@ -34,12 +35,12 @@ class CallEventHandler(BaseDataHandler):
     def handle(self):
         """Validate and save the data"""
 
+        # parse the data
+        map_dict_fields(self.data, const.API_FIELDS, const.DB_FIELDS)
+
         self.validate()
         if self.errors:
             raise InvalidDataException(self.errors)
-
-        # parse the data
-        map_dict_fields(self.data, const.API_FIELDS, const.DB_FIELDS)
 
         # save data
         self.save()
@@ -47,51 +48,12 @@ class CallEventHandler(BaseDataHandler):
     def validate(self):
         """Validate fields from data"""
 
-        # validate the type field
-        type_field = self.data.get('type')
-        if not type_field:
-            self.add_error('type', const.MESSAGE_FIELD_REQUIRED)
-        else:
-            callevent_choices_keys = dict(const.CALL_TYPE_CHOICES).keys()
-            if type_field not in callevent_choices_keys:
-                self.add_error('type', const.MESSAGE_FIELD_INVALID_VALUE)
+        form = CallEventForm(self.data)
+        if not form.is_valid():
+            self.errors = form.errors
+            map_dict_fields(self.errors, const.DB_FIELDS, const.API_FIELDS)
 
-        # validate the timestamp field
-        timestamp_field = self.data.get('timestamp')
-        if not timestamp_field:
-            self.add_error('timestamp', const.MESSAGE_FIELD_REQUIRED)
-        else:
-            try:
-                datetime.datetime.strptime(
-                    timestamp_field, const.TIMESTAMP_FORMAT)
-            except ValueError:
-                self.add_error(
-                    'timestamp', const.MESSAGE_FIELD_INVALID_FORMAT
-                )
-
-        # validate the call_id field
-        call_id_field = self.data.get('call_id')
-        if not call_id_field:
-            self.add_error('call_id', const.MESSAGE_FIELD_REQUIRED)
-        else:
-            if len(str(call_id_field)) > const.CALL_ID_MAX_LENGTH:
-                self.add_error('call_id', const.MESSAGE_FIELD_INVALID_LENGTH)
-
-        # validate source and destination fields
-        for field in ['source', 'destination']:
-            field_value = self.data.get(field)
-            if not field_value:
-                if type_field == const.CALL_TYPE_START:
-                    self.add_error(field, const.MESSAGE_FIELD_REQUIRED)
-            else:
-                value_valid_length = (
-                    len(field_value) >= const.PHONE_NUMBER_MIN_LENGTH and
-                    len(field_value) <= const.PHONE_NUMBER_MAX_LENGTH
-                )
-                if not value_valid_length:
-                    self.add_error(field, const.MESSAGE_FIELD_INVALID_LENGTH)
-                if not field_value.isdigit():
-                    self.add_error(field, const.MESSAGE_FIELD_INVALID_VALUE)
+        return
 
     def save(self):
         """Save current data"""
