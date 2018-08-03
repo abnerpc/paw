@@ -50,17 +50,14 @@ def test_bill_detail_raise_exception(mocked_json, bill_handler):
 
 
 @patch('pawapp.api.bill_handler')
-@patch('pawapp.api.json')
-def test_bill_detail_valid(mocked_json, bill_handler):
+def test_bill_detail_valid(bill_handler):
     """Test method call with valid data"""
     handler_mock = Mock(**{'handle.return_value': {'test': 'ok'}})
     bill_handler.return_value = handler_mock
-    mocked_json.dumps = Mock(return_value='test_is_ok')
 
     resource = BillResource()
     res = resource.detail('321')
-    assert res == 'test_is_ok'
+    assert res == {'test': 'ok'}
     bill_handler.assert_called_once_with(
         {'phone_number': '321', 'month': None, 'year': None}
     )
-    mocked_json.dumps.assert_called_once_with({'test': 'ok'})

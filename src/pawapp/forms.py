@@ -18,13 +18,22 @@ class CallEventForm(forms.ModelForm):
             except ValueError:
                 self.add_error('call_timestamp', const.MESSAGE_FIELD_INVALID_FORMAT)
 
-        # validate if phone numbers is required
+        # validate if phone numbers is required and valid
+        def validate_phone_field(field, call_type):
+            field_value = self.cleaned_data.get(field)
+            if not field_value:
+                if call_type == const.CALL_TYPE_START:
+                    self.add_error(field, const.MESSAGE_FIELD_REQUIRED)
+                return
+            if not str(field_value).isdigit():
+                self.add_error(field, const.MESSAGE_FIELD_INVALID_VALUE)
+            elif len(str(field_value)) < const.PHONE_NUMBER_MIN_LENGTH:
+                self.add_error(field, const.MESSAGE_FIELD_INVALID_VALUE)
+
         call_type = self.cleaned_data.get('call_type')
-        if call_type == const.CALL_TYPE_START:
-            if not self.cleaned_data.get('source_number') and 'source_number' not in self.errors:
-                self.add_error('source_number', const.MESSAGE_FIELD_REQUIRED)
-            if not self.cleaned_data.get('destination_number') and 'destination_number' not in self.errors:
-                self.add_error('destination_number', const.MESSAGE_FIELD_REQUIRED)
+        for field in ['source_number', 'destination_number']:
+            if not field in self.errors:
+                validate_phone_field(field, call_type)
 
     class Meta():
         model = models.CallEvent

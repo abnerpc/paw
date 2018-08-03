@@ -5,6 +5,7 @@ import pytest
 from pawapp.exceptions import InvalidDataException
 from pawapp import const
 from pawapp.handlers import callevent_handler, bill_handler
+from pawapp.helpers import map_dict_fields
 
 
 @patch('pawapp.handlers.map_dict_fields')
@@ -19,15 +20,18 @@ def test_calleventhandler_handle_calls(map_dict_fields):
     handler.save.assert_called_once_with()
 
 
-def test_calleventhandler_handle_raise_validation_exception():
-    handler = callevent_handler({})
+@patch('pawapp.handlers.map_dict_fields')
+def test_calleventhandler_handle_raise_validation_exception(map_dict_fields):
+    handler = callevent_handler({'testing': 'ok'})
     handler.errors = {'error': 'testing'}
+    handler.validate = Mock()
 
     with pytest.raises(InvalidDataException) as exception_info:
         handler.handle()
 
     ide = exception_info.value
     assert ide.errors['error'] == 'testing'
+    map_dict_fields.assert_called_once_with({'testing': 'ok'}, const.API_FIELDS, const.DB_FIELDS)
 
 
 @pytest.mark.parametrize('data,expected_errors', [
@@ -57,10 +61,14 @@ def test_calleventhandler_handle_raise_validation_exception():
     ),
 ])
 def test_calleventhandler_validate_required(data, expected_errors):
+    """Test EventCall handler validation"""
+    map_dict_fields(data, const.API_FIELDS, const.DB_FIELDS)
     handler = callevent_handler(data)
 
     handler.validate()
     assert len(expected_errors) == len(handler.errors.keys())
+
+    map_dict_fields(handler.errors, const.DB_FIELDS, const.API_FIELDS)
     for key in expected_errors:
         assert key in handler.errors
 
