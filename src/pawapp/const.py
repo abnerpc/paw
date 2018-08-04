@@ -36,4 +36,3 @@ MESSAGE_FIELD_INVALID_FORMAT = 'This field has an invalid format.'
 MESSAGE_FIELD_INVALID_LENGTH = 'This field has an invalid length.'
 MESSAGE_PERIOD_INVALID = 'Invalid period values'
 MESSAGE_PERIOD_WRONG = 'Wrong period values'
-

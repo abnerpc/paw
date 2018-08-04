@@ -34,7 +34,8 @@ class CallEvent(models.Model):
         Save or update Call Event
 
         Args:
-            save_bill (bool, optional): Should save the bill for this call event
+            save_bill (bool, optional): Should save the bill for this call
+                                        event
             **data: Dict with Call Event data
 
         Returns:
@@ -55,8 +56,12 @@ class CallEvent(models.Model):
             call_value, call_duration = cls.calculate_call(call_id)
 
             # get the calls related
-            start_call = cls.objects.get(call_id=call_id, call_type=const.CALL_TYPE_START)
-            end_call = cls.objects.get(call_id=call_id, call_type=const.CALL_TYPE_END)
+            start_call = cls.objects.get(
+                call_id=call_id, call_type=const.CALL_TYPE_START
+            )
+            end_call = cls.objects.get(
+                call_id=call_id, call_type=const.CALL_TYPE_END
+            )
 
             # save bill values
             Bill.save_by_calls(
@@ -100,7 +105,8 @@ class CallEvent(models.Model):
             call_id (int): Call event Id being calculated
 
         Returns:
-            decimal, decimal: Two values representing the total value and duration calculated
+            decimal, decimal: Two values representing the total value and
+                              duration calculated
         """
         # get start and end events for this call
         call_events = cls.interval_by_call_id(call_id)
@@ -116,7 +122,9 @@ class CallEvent(models.Model):
             raise exceptions.InvalidCallIntervalException()
 
         # build values maps based on start and end calls datetime
-        map_interval_values = ConnectionRate.mapped_rates_interval(start_call, end_call)
+        map_interval_values = ConnectionRate.mapped_rates_interval(
+            start_call, end_call
+        )
         if not map_interval_values:
             raise exceptions.RatesNotFoundException()
 
@@ -134,25 +142,27 @@ class CallEvent(models.Model):
             calculated_value = int(duration / 60) * minute_rate
             calculated_values.append(round(Decimal(calculated_value), 2))
 
-        for from_datetime, to_datetime, standing_rate, minute_rate in map_interval_values:
+        # navigate each values:
+        # from_datetime, to_datetime, standing_rate and minute_rate
+        for from_dt, to_dt, standing_rate, minute_rate in map_interval_values:
 
             if not calculated_values:
 
-                if not from_datetime < start_call < to_datetime:
+                if not from_dt < start_call < to_dt:
                     continue
 
                 # append the standing rate
                 calculated_values.append(standing_rate)
 
-                from_datetime = start_call
+                from_dt = start_call
 
-            if from_datetime.date() == end_call.date():
+            if from_dt.date() == end_call.date():
 
-                if from_datetime < end_call < to_datetime:
-                    calculate_values(from_datetime, end_call, minute_rate)
+                if from_dt < end_call < to_dt:
+                    calculate_values(from_dt, end_call, minute_rate)
                     break
 
-            calculate_values(from_datetime, to_datetime, minute_rate)
+            calculate_values(from_dt, to_dt, minute_rate)
 
         # returns all the sum of the calculated values and durations
         return sum(calculated_values), sum(calculated_durations)
@@ -234,21 +244,35 @@ class ConnectionRate(models.Model):
 
                 # if time is not inverse, add and continue
                 if to_time > from_time:
-                    map_interval_values.add(
-                        (from_datetime, to_datetime, standing_rate, minute_rate)
-                    )
+                    map_interval_values.add((
+                        from_datetime,
+                        to_datetime,
+                        standing_rate,
+                        minute_rate
+                    ))
                     continue
 
-                # if time is inverse, add datetime for the day before and after current day
+                # if time is inverse, add datetime for the day before and after
+                # current day
                 yesterday = current_day + timedelta(days=-1)
                 yesterday_datetime = datetime.combine(yesterday, from_time)
                 tomorrow = current_day + timedelta(days=1)
                 tomorrow_datetime = datetime.combine(tomorrow, to_time)
                 map_interval_values.add(
-                    (yesterday_datetime, to_datetime, standing_rate, minute_rate)
+                    (
+                        yesterday_datetime,
+                        to_datetime,
+                        standing_rate,
+                        minute_rate
+                    )
                 )
                 map_interval_values.add(
-                    (from_datetime, tomorrow_datetime, standing_rate, minute_rate)
+                    (
+                        from_datetime,
+                        tomorrow_datetime,
+                        standing_rate,
+                        minute_rate
+                    )
                 )
 
             current_day += timedelta(days=1)
@@ -275,7 +299,8 @@ class Bill(models.Model):
         Save Bill and Item based on the start and end calls
 
         Args:
-            start_call (CallEvent): CallEvent object representing the start call
+            start_call (CallEvent): CallEvent object representing the start
+                                    call
             end_call (CallEvent): CallEvent object representing the end call
             duration (int): Call duration
             amount (float): Call value

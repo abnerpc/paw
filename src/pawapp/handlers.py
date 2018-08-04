@@ -104,7 +104,9 @@ class BillHandler(BaseDataHandler):
                 month = int(month)
                 year = int(year)
                 if len(str(month)) > 2 or len(str(year)) != 4:
-                    self.add_error('period', const.MESSAGE_FIELD_INVALID_LENGTH)
+                    self.add_error(
+                        'period', const.MESSAGE_FIELD_INVALID_LENGTH
+                    )
                 else:
                     period_date = datetime.date(year, month, 1)
                     last_period_date = datetime.date(*last_period(), day=1)
@@ -113,10 +115,10 @@ class BillHandler(BaseDataHandler):
             except ValueError:
                 self.add_error('period', const.MESSAGE_FIELD_INVALID_VALUE)
 
+
 def callevent_handler(data):
     return CallEventHandler(data)
 
 
 def bill_handler(data):
     return BillHandler(data)
-

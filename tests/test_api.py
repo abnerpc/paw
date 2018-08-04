@@ -30,12 +30,10 @@ def test_call_event_create_with_bad_data(callevent_handler):
 
 
 @patch('pawapp.api.bill_handler')
-@patch('pawapp.api.json')
-def test_bill_detail_raise_exception(mocked_json, bill_handler):
+def test_bill_detail_raise_exception(bill_handler):
     """Test method call raise exception"""
     handler_mock = Mock(**{'handle.side_effect': InvalidDataException([])})
     bill_handler.return_value = handler_mock
-    mocked_json.dumps = Mock()
 
     resource = BillResource()
     res = None
@@ -46,7 +44,6 @@ def test_bill_detail_raise_exception(mocked_json, bill_handler):
     bill_handler.assert_called_once_with(
         {'phone_number': '123', 'month': None, 'year': None}
     )
-    mocked_json.dumps.assert_not_called()
 
 
 @patch('pawapp.api.bill_handler')

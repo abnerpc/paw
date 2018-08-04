@@ -17,6 +17,7 @@ def get_value(key):
     if data:
         return pickle.loads(data)
 
+
 def set_value(key, data):
     """
     Set value in the cache using pickle

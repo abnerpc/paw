@@ -1,8 +1,5 @@
-import json
-
 from restless.dj import DjangoResource
 from restless.exceptions import BadRequest
-from restless.preparers import FieldsPreparer
 
 from .handlers import callevent_handler, bill_handler
 from .exceptions import InvalidDataException
@@ -54,4 +51,3 @@ class BillResource(BaseResource):
             return bill_data
         except InvalidDataException as ide:
             raise BadRequest(ide.errors)
-

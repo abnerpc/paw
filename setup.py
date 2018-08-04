@@ -21,6 +21,7 @@ def read(*names, **kwargs):
         encoding=kwargs.get('encoding', 'utf8')
     ).read()
 
+
 # external dependencies required to run the application
 EXTERNAL_DEPENDENCIES = [
     'django==2.0.3',
@@ -40,7 +41,8 @@ setup(
     license='BSD 2-Clause License',
     description='A well-defined API to calculate phone calls costs',
     long_description='%s\n%s' % (
-        re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub('', read('README.md')),
+        re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub(
+            '', read('README.md')),
         re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.md'))
     ),
     author='Abner Paulo Campanha',
