@@ -1,17 +1,17 @@
-"""Module to access and save data through the cache system"""
+"""Module to access and save data through the Django cache system."""
 import pickle
 from django.core.cache import cache
 
 
 def get_value(key):
-    """
-    Get value from cache using pickle
+    """Get value from cache using pickle.
 
     Args:
-        key (str): Cache key
+        key (str): Cache key.
 
     Returns:
-        obj: Cached object
+        obj: Cached object.
+
     """
     data = cache.get(key)
     if data:
@@ -19,12 +19,12 @@ def get_value(key):
 
 
 def set_value(key, data):
-    """
-    Set value in the cache using pickle
+    """Set value in the cache using pickle.
 
     Args:
-        key (str): Cache key
-        data (obj): Object to be saved
+        key (str): Cache key.
+        data (obj): Object to be saved.
+
     """
     if not key or not data:
         return

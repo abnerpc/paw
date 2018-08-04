@@ -17,23 +17,46 @@ class BaseDataHandler:
         self.errors = {}
 
     def handle(self):
+        """Process the current data.
+
+        **MUST BE OVERRIDDEN BY THE USER** - By default, this returns
+        ``NotImplementedError``.
+
+        Returns:
+            dict: Result for the data processed.
+        """
         raise NotImplementedError
 
     def validate(self):
+        """Run the validation for the current data.
+
+        **MUST BE OVERRIDDEN BY THE USER** - By default, this returns
+        ``NotImplementedError``.
+        """
         raise NotImplementedError
 
     def add_error(self, field, message):
+        """Add message error for a field.
+
+        Args:
+            field (str): Field name.
+            message (str): Message error.
+        """
         add_list_value(self.errors, field, message)
 
 
 class CallEventHandler(BaseDataHandler):
-    """Handle Call Event data"""
+    """Handler class for CallEvent data."""
 
     def __init__(self, data):
         super().__init__(data)
 
     def handle(self):
-        """Validate and save the data"""
+        """Process CallEvent current data.
+
+        Raises:
+            InvalidDataException: Raises if data is not valid.
+        """
 
         # parse the data
         map_dict_fields(self.data, const.API_FIELDS, const.DB_FIELDS)
@@ -46,30 +69,34 @@ class CallEventHandler(BaseDataHandler):
         self.save()
 
     def validate(self):
-        """Validate fields from data"""
+        """Validate fields for current data."""
 
         form = CallEventForm(self.data)
         if not form.is_valid():
             self.errors = form.errors
             map_dict_fields(self.errors, const.DB_FIELDS, const.API_FIELDS)
 
-        return
-
     def save(self):
-        """Save current data"""
+        """Save current data for CallEvent.
+
+        This function calls an async job to save the current data.
+        """
         # send data to be saved by another job
         save_callevent.delay(self.data)
 
 
 class BillHandler(BaseDataHandler):
-    """Handle Bill data"""
+    """Handler class for Bill data."""
 
     def __init__(self, data):
         super().__init__(data)
 
     def handle(self):
-        """Handle Bill detail request"""
+        """Process Bill current data.
 
+        Raises:
+            InvalidDataException: Raises if data is not valid.
+        """
         self.validate()
         if self.errors:
             raise InvalidDataException(self.errors)
@@ -78,6 +105,7 @@ class BillHandler(BaseDataHandler):
         month = self.data.get('month')
         year = self.data.get('year')
 
+        # if a period was not informed, get the current last one
         if not month and not year:
             year, month = last_period()
 
@@ -85,7 +113,9 @@ class BillHandler(BaseDataHandler):
         return bill_data
 
     def validate(self):
-        """Validate data requested"""
+        """Validate fields for current data."""
+
+        # validate phone number
         phone_number = self.data.get('phone_number', '')
         if not phone_number:
             self.add_error('phone_number', const.MESSAGE_FIELD_REQUIRED)
@@ -117,8 +147,10 @@ class BillHandler(BaseDataHandler):
 
 
 def callevent_handler(data):
+    """Convenient function to return CallEvent handler instance."""
     return CallEventHandler(data)
 
 
 def bill_handler(data):
+    """Convenient function to return Bill handler instance."""
     return BillHandler(data)

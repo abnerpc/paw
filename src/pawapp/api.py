@@ -6,7 +6,7 @@ from .exceptions import InvalidDataException
 
 
 class BaseResource(DjangoResource):
-
+    """A Base class for the API resources."""
     def is_authenticated(self):
         # Open everything wide!
         # DANGEROUS, DO NOT DO IN PRODUCTION.
@@ -25,7 +25,7 @@ class BaseResource(DjangoResource):
 
 
 class CallEventResource(BaseResource):
-
+    """Resource to listening CallEvent requests."""
     def create(self):
 
         try:
@@ -36,6 +36,7 @@ class CallEventResource(BaseResource):
 
 
 class BillResource(BaseResource):
+    """Resource to listening Bill requests."""
 
     def detail(self, phone_number, month=None, year=None):
 

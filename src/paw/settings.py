@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'django_rq',
 
     # local apps
-    'pawapp.apps.PawappConfig',
+    'pawapp',
 ]
 
 MIDDLEWARE = [

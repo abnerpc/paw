@@ -1,3 +1,4 @@
+"""Django models module."""
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -10,7 +11,7 @@ from . import cache
 
 
 class CallEvent(models.Model):
-    """Model representing the call events ocurred"""
+    """Model representing the call events ocurred."""
 
     call_type = models.CharField(max_length=5, choices=const.CALL_TYPE_CHOICES)
     call_timestamp = models.CharField(max_length=20)
@@ -25,21 +26,27 @@ class CallEvent(models.Model):
 
     @property
     def call_timestamp_datetime(self):
+        """Datetime call_timestamp value.
+
+        Returns:
+            datetime: Call_timestamp value.
+
+        """
         call_ts = self.call_timestamp
         return datetime.strptime(call_ts, const.TIMESTAMP_FORMAT)
 
     @classmethod
     def save_call(cls, save_bill=False, **data):
-        """
-        Save or update Call Event
+        """Save or update CallEvent.
 
         Args:
             save_bill (bool, optional): Should save the bill for this call
-                                        event
-            **data: Dict with Call Event data
+                event.
+            **data: Arbitrary keyword arguments.
 
         Returns:
-            CallEvent: Instance created or updated
+            CallEvent: Instance created or updated.
+
         """
         # save or update call event data
         call_type = data.pop('call_type')
@@ -75,14 +82,14 @@ class CallEvent(models.Model):
 
     @classmethod
     def interval_by_call_id(cls, call_id):
-        """
-        Return call timestamp interval as datetime
+        """Return call timestamp interval.
 
         Args:
             call_id (int): Call event Id
 
         Returns:
-            dict: Dictionary with start and end datetime
+            dict: Start and end datetime
+
         """
         interval_values = {}
         call_events = cls.objects.filter(call_id=call_id).values_list(
@@ -98,15 +105,19 @@ class CallEvent(models.Model):
 
     @classmethod
     def calculate_call(cls, call_id):
-        """
-        Calculated the call value and duration charged
+        """Calculated the call value and duration charged.
 
         Args:
-            call_id (int): Call event Id being calculated
+            call_id (int): Call event Id.
 
         Returns:
-            decimal, decimal: Two values representing the total value and
-                              duration calculated
+            tuple: Two values representing the total value and
+                duration calculated.
+
+        Raises:
+            InvalidCallPairException: Raises if start or end calls are missing.
+            InvalidCallIntervalException: Raises if end datetime is less than
+                start datetime.
         """
         # get start and end events for this call
         call_events = cls.interval_by_call_id(call_id)
@@ -172,7 +183,7 @@ class CallEvent(models.Model):
 
 
 class ConnectionRate(models.Model):
-    """Model representing the connection rate calls"""
+    """Model representing the connection rate calls."""
 
     from_time = models.TimeField()
     to_time = models.TimeField()
@@ -186,15 +197,15 @@ class ConnectionRate(models.Model):
 
     @classmethod
     def current_rates(cls, use_cache=True):
-        """
-        Current rates available for calculation
+        """Current rates available for calculation.
 
         Args:
-            use_cache (bool): Should use the cache
+            use_cache (bool): Should use the cache.
 
         Returns:
             list: List with dict object with the fields:
-            from_time, to_time, stangind and minute rates
+                from_time, to_time, stangind and minute rates
+
         """
         data = None
         if use_cache:
@@ -213,18 +224,18 @@ class ConnectionRate(models.Model):
 
     @classmethod
     def mapped_rates_interval(cls, start_datetime, end_datetime):
-        """
-        List of mapped datetime and values intervals
+        """List of mapped datetime and values intervals.
 
         This method is responsible to calculate the range of intervals between
         the start and end datetime with respective values.
 
         Args:
-            start_datetime (datetime): Start datetime object
-            end_datetime (datetime): End datetime object
+            start_datetime (datetime): Start datetime object.
+            end_datetime (datetime): End datetime object.
 
         Returns:
-            list: List of intervals
+            list: List of intervals.
+
         """
         # get the current rates
         rates = cls.current_rates()
@@ -286,7 +297,7 @@ class ConnectionRate(models.Model):
 
 
 class Bill(models.Model):
-    """Model representing the phone bill"""
+    """Model representing the phone bill."""
     phone_number = models.CharField(max_length=const.PHONE_NUMBER_MAX_LENGTH)
     year = models.PositiveSmallIntegerField()
     month = models.PositiveSmallIntegerField()
@@ -295,15 +306,14 @@ class Bill(models.Model):
 
     @classmethod
     def save_by_calls(cls, start_call, end_call, duration, amount):
-        """
-        Save Bill and Item based on the start and end calls
+        """Save Bill and Item based on the start and end calls.
 
         Args:
             start_call (CallEvent): CallEvent object representing the start
-                                    call
-            end_call (CallEvent): CallEvent object representing the end call
-            duration (int): Call duration
-            amount (float): Call value
+                call.
+            end_call (CallEvent): CallEvent object representing the end call.
+            duration (int): Call duration.
+            amount (float): Call value.
         """
 
         # get related bill or create a new one
@@ -331,12 +341,13 @@ class Bill(models.Model):
 
     @classmethod
     def data_by_number_period(cls, phone_number, month, year):
-        """
-        Return bill data by phone_number, month and yea
+        """Return bill data by phone_number, month and year.
+
         Args:
             phone_number (str): Phone number
             month (str): Month
             year (str): Year
+
         """
         query = {
             'phone_number': phone_number,
@@ -370,7 +381,7 @@ class Bill(models.Model):
 
 
 class BillItem(models.Model):
-    """Model representing the item of a Bill"""
+    """Model representing the item of a Bill."""
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=const.PHONE_NUMBER_MAX_LENGTH)
     from_timestamp = models.CharField(max_length=20)
@@ -380,10 +391,12 @@ class BillItem(models.Model):
 
     @property
     def repr_duration(self):
+        """Represent duration value."""
         return str(timedelta(seconds=self.duration))
 
     @property
     def from_date_and_time(self):
+        """From_timestamp field splited as date and time values."""
         values = self.from_timestamp.split('T')
         if len(values) != 2:
             return ['', '']

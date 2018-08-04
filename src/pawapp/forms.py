@@ -1,3 +1,4 @@
+"""Django forms module."""
 import datetime
 
 from django import forms
@@ -6,6 +7,7 @@ from . import models, const
 
 
 class CallEventForm(forms.ModelForm):
+    """Form to validate values of CallEvent object."""
 
     def clean(self):
         cleaned_data = super().clean()
