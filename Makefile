@@ -1,3 +1,5 @@
+.PHONY: docs
+
 APP_PATH=src/pawapp
 PROJECT_PATH=src/paw
 MANAGE_CMD=python $(PROJECT_PATH)/manage.py
@@ -17,6 +19,9 @@ install-dev:
 
 install-test:
 	pip install -e . && pip install -r requirements/test.txt
+
+install-docs:
+	pip install . && pip install -r requirements/docs.txt
 
 .env:
 	cp contrib/env .env
@@ -53,3 +58,6 @@ test-cov: .env clean
 
 test-tox: .env clean
 	tox -v
+
+docs:
+	cd docs && make html

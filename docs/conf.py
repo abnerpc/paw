@@ -13,7 +13,14 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "paw.settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'paw.settings')
+os.environ.setdefault('SECRET_KEY', 'keep_secret')
+os.environ.setdefault('ALLOWED_HOSTS', '')
+os.environ.setdefault('POSTGRES_HOST', 'localhost')
+os.environ.setdefault('POSTGRES_USER', 'paw_user')
+os.environ.setdefault('POSTGRES_PASSWORD', '')
+os.environ.setdefault('REDIS_RQ_URL', '')
+os.environ.setdefault('REDIS_URL', '')
 import django
 django.setup()
 
