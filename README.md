@@ -9,4 +9,8 @@ The API also has an endpoint which returns the phone bill for a given period.
 
 Full documention at: [http://paw.readthedocs.io/](http://paw.readthedocs.io/)
 
+----------
+
+This project was built on linux Ubuntu 18.04. I used pyenv to control virtual environments and neovim to code.
+
 ![python](https://www.python.org/static/community_logos/python-logo.png)
