@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.shortcuts import get_object_or_404
 
 from . import const
@@ -294,6 +296,12 @@ class ConnectionRate(models.Model):
         )
 
         return map_interval_values
+
+
+@receiver(post_save, sender=ConnectionRate)
+def postsave_connectionrate_handler(sender, **kwargs):
+    """Clean cache for ConnectionRate"""
+    cache.clean_value(const.CACHE_KEY_RATES)
 
 
 class Bill(models.Model):

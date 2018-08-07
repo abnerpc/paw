@@ -30,3 +30,15 @@ def set_value(key, data):
         return
 
     cache.set(key, pickle.dumps(data))
+
+
+def clean_value(key):
+    """Clean cached values.
+
+    Args:
+        key (str): Key to identify the cache value.
+
+    """
+    if not key:
+        return
+    cache.delete(key)
