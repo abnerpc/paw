@@ -24,7 +24,7 @@ def read(*names, **kwargs):
 
 # external dependencies required to run the application
 EXTERNAL_DEPENDENCIES = [
-    'django==2.0.3',
+    'django==2.1',
     'python-decouple==3.1',
     'psycopg2-binary==2.7.4',
     'restless==2.1.1',
