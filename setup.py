@@ -37,7 +37,7 @@ EXTERNAL_DEPENDENCIES = [
 
 setup(
     name='paw',
-    version='0.0.1',
+    version='1.0',
     license='BSD 2-Clause License',
     description='A well-defined API to calculate phone calls costs',
     long_description='%s\n%s' % (
@@ -54,7 +54,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Telecommunications Industry',
         'License :: OSI Approved :: MIT License',
         'Operating System :: Unix',
