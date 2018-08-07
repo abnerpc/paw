@@ -47,6 +47,7 @@ Contents
 
   installing
   running
+  pawadmin
   modules
   usage
 
