@@ -24,15 +24,15 @@ def read(*names, **kwargs):
 
 # external dependencies required to run the application
 EXTERNAL_DEPENDENCIES = [
-    'django==2.1',
-    'python-decouple==3.1',
-    'psycopg2-binary==2.7.4',
-    'restless==2.1.1',
-    'redis==2.10.6',
-    'rq==0.10.0',
-    'django-rq==1.0.1',
-    'django-redis==4.9.0',
-    'ujson==1.35',
+    'django',
+    'python-decouple',
+    'psycopg2-binary',
+    'restless',
+    'redis',
+    'rq',
+    'django-rq',
+    'django-redis',
+    'ujson',
 ]
 
 setup(
